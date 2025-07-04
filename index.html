@@ -187,8 +187,10 @@
             if (modoAtual === 'pomodoro') {
               salvarPomodoro();
               alert("Pomodoro finalizado! Hora da pausa 😊");
+              enviarNotificacao("Pomodoro finalizado!");
             } else {
               alert("Pausa finalizada! Vamos voltar? 💪");
+              enviarNotificacao("Pausa finalizada!");
             }
 
             setModo(modoAtual);
@@ -249,6 +251,15 @@
     document.getElementById('relatorioTexto').addEventListener("input", salvarRelatorioTexto);
     setModo('pomodoro');
     atualizarTela();
+    if ('Notification' in window && Notification.permission !== 'granted') {
+  Notification.requestPermission();
+}
+    function enviarNotificacao(titulo, mensagem) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(titulo, { body: mensagem, icon: '📖🧭' });
+  }
+}
+    
   </script>
 </body>
 </html>
