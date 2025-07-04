@@ -21,9 +21,31 @@
       margin-bottom: 10px;
     }
 
+    .modo {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .modo button {
+      background-color: #e3dfff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .modo button.active {
+      background-color: #ab7bc0;
+      color: white;
+    }
+
     .timer {
       font-size: 64px;
       margin: 20px;
+      color: #6b6bb8;
     }
 
     .buttons button {
@@ -44,7 +66,7 @@
 
     .info, .relatorio {
       margin-top: 20px;
-      background: #f9eaff;
+      background: #f0faff;
       padding: 20px;
       border-radius: 12px;
       width: 90%;
@@ -89,7 +111,14 @@
   </style>
 </head>
 <body>
-  <h1>Pomodoro da Julia 🌸</h1>
+  <h1>Julia's study time 📚</h1>
+
+  <div class="modo">
+    <button onclick="setModo('pomodoro')" id="btnPomodoro">Pomodoro</button>
+    <button onclick="setModo('short')" id="btnShort">Short Break</button>
+    <button onclick="setModo('long')" id="btnLong">Long Break</button>
+  </div>
+
   <div class="timer" id="timer">30:00</div>
 
   <div class="buttons">
@@ -100,7 +129,7 @@
 
   <div class="info">
     <p><strong>Pomodoros hoje:</strong> <span id="pomodorosHoje">0</span></p>
-    <p><strong>Tempo estudado:</strong> <span id="tempoHoje">0</span> min</p>
+    <p><strong>Tempo estudado:</strong> <span id="tempoHoje">0</span> min (<span id="tempoHojeHoras">0.0</span> h)</p>
   </div>
 
   <div class="relatorio">
@@ -114,18 +143,34 @@
   </div>
 
   <div class="footer">
-    Feito com 💜 por Julia e ChatGPT
+    Feito com 💜 por Julia 
   </div>
 
   <script>
-    let tempo = 30 * 60; // 30 minutos
+    let tempo = 30 * 60; // tempo inicial: 30min
     let timer;
     let rodando = false;
+    let modoAtual = 'pomodoro';
 
     function formatar(segundos) {
       const m = Math.floor(segundos / 60).toString().padStart(2, '0');
       const s = (segundos % 60).toString().padStart(2, '0');
       return `${m}:${s}`;
+    }
+
+    function setModo(modo) {
+      modoAtual = modo;
+      clearInterval(timer);
+      rodando = false;
+
+      if (modo === 'pomodoro') tempo = 30 * 60;
+      if (modo === 'short') tempo = 8 * 60;
+      if (modo === 'long') tempo = 20 * 60;
+
+      document.getElementById('timer').textContent = formatar(tempo);
+
+      document.querySelectorAll('.modo button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`btn${modo.charAt(0).toUpperCase() + modo.slice(1)}`).classList.add('active');
     }
 
     function startTimer() {
@@ -138,10 +183,15 @@
           } else {
             clearInterval(timer);
             rodando = false;
-            salvarPomodoro();
-            alert("Pomodoro finalizado! Hora da pausa 😊");
-            tempo = 8 * 60;
-            document.getElementById('timer').textContent = formatar(tempo);
+
+            if (modoAtual === 'pomodoro') {
+              salvarPomodoro();
+              alert("Pomodoro finalizado! Hora da pausa 😊");
+            } else {
+              alert("Pausa finalizada! Vamos voltar? 💪");
+            }
+
+            setModo(modoAtual);
           }
         }, 1000);
       }
@@ -155,8 +205,7 @@
     function resetTimer() {
       clearInterval(timer);
       rodando = false;
-      tempo = 30 * 60;
-      document.getElementById('timer').textContent = formatar(tempo);
+      setModo(modoAtual);
     }
 
     function salvarPomodoro() {
@@ -193,10 +242,12 @@
       const hojeData = data[hoje] || { pomodoros: 0, tempo: 0, relatorio: "" };
       document.getElementById('pomodorosHoje').textContent = hojeData.pomodoros;
       document.getElementById('tempoHoje').textContent = hojeData.tempo;
+      document.getElementById('tempoHojeHoras').textContent = (hojeData.tempo / 60).toFixed(1);
       document.getElementById('relatorioTexto').value = hojeData.relatorio || "";
     }
 
     document.getElementById('relatorioTexto').addEventListener("input", salvarRelatorioTexto);
+    setModo('pomodoro');
     atualizarTela();
   </script>
 </body>
