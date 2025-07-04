@@ -96,7 +96,7 @@
       const dias = getUltimosDias(7);
       const labels = dias.map(d => d.slice(5)); // mostrar só mês/dia
       const pomodoros = dias.map(d => (dados[d]?.pomodoros || 0));
-      const tempos = dias.map(d => (dados[d]?.tempo || 0));
+      const tempos = dias.map(d => ((dados[d]?.tempo || 0) / 60).toFixed(1));
       const relatorios = dias.map(d => ({ data: d, texto: dados[d]?.relatorio }));
 
       return { labels, pomodoros, tempos, relatorios };
@@ -127,29 +127,45 @@
       });
 
       new Chart(document.getElementById('tempoChart'), {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Minutos estudados',
-            data: tempos,
-            fill: true,
-            backgroundColor: '#ffe3e3',
-            borderColor: '#ffa3a3',
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            title: {
-              display: true,
-              text: 'Tempo de estudo diário (minutos)'
-            }
+  type: 'line',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Horas estudadas',
+      data: tempos,
+      fill: true,
+      backgroundColor: '#ffe3e3',
+      borderColor: '#ffa3a3',
+      tension: 0.3
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Tempo de estudo diário (horas)'
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `${context.parsed.y} horas`;
           }
         }
-      });
+      }
+    },
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: 'Horas'
+        }
+      }
     }
+  }
+});
+
+    <div id="totalHoras" style="text-align:center; margin-top: 20px; font-weight: bold; font-size: 18px; color: #6b6bb8;"></div>
 
     function mostrarRelatorios(relatorios) {
       const container = document.getElementById("relatorioList");
@@ -166,6 +182,8 @@
     const dados = carregarDados();
     gerarGraficos(dados);
     mostrarRelatorios(dados.relatorios);
+    const totalHoras = tempos.reduce((acc, h) => acc + parseFloat(h), 0).toFixed(1);
+document.getElementById('totalHoras').textContent = `📅 Total da semana: ${totalHoras} horas`;
   </script>
 </body>
 </html>
