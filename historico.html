@@ -63,7 +63,7 @@
 <body>
   <h1>✨ Histórico de Estudos ✨</h1>
   <div class="container" id="historicoContainer">
-    <!-- Dias com relatórios aparecem aqui -->
+    <!-- Dias aparecem aqui -->
 
     <div class="grafico">
       <canvas id="graficoDiario"></canvas>
@@ -80,23 +80,20 @@
     const dados = JSON.parse(localStorage.getItem("pomodoros") || "{}");
     const container = document.getElementById("historicoContainer");
 
-    // Mostrar relatórios
     const datasOrdenadas = Object.keys(dados).sort().reverse();
 
     datasOrdenadas.forEach(data => {
-      const { pomodoros, tempo, relatorio } = dados[data];
+      const { pomodoros, tempo } = dados[data];
       const div = document.createElement("div");
       div.className = "dia";
       div.innerHTML = `
         <h3>🗓️ ${data}</h3>
         <p>🍅 <strong>Pomodoros:</strong> ${pomodoros}</p>
         <p>⏱️ <strong>Tempo estudado:</strong> ${tempo} min (${(tempo/60).toFixed(1)} h)</p>
-        <p>📒 <strong>Relatório:</strong><br>${relatorio ? relatorio : '<em>(nenhum relatório escrito)</em>'}</p>
       `;
       container.insertBefore(div, container.querySelector(".grafico"));
     });
 
-    // Gerar gráficos
     const labels = datasOrdenadas.slice().reverse();
     const tempos = labels.map(d => dados[d].tempo);
 
@@ -116,19 +113,19 @@
       }
     });
 
-    const semanal = {};
-    labels.forEach((data, i) => {
-      const semana = data.slice(0, 7); // yyyy-mm
-      semanal[semana] = (semanal[semana] || 0) + dados[data].tempo;
+    const mensal = {};
+    labels.forEach(data => {
+      const mes = data.slice(0, 7); // yyyy-mm
+      mensal[mes] = (mensal[mes] || 0) + dados[data].tempo;
     });
 
     new Chart(document.getElementById("graficoSemanal"), {
       type: 'bar',
       data: {
-        labels: Object.keys(semanal),
+        labels: Object.keys(mensal),
         datasets: [{
           label: "Tempo estudado por mês (min)",
-          data: Object.values(semanal),
+          data: Object.values(mensal),
           backgroundColor: '#f7c6c7'
         }]
       },
