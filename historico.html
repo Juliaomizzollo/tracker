@@ -2,188 +2,141 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Histórico e Gráficos 📊</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Histórico de Estudos — Julia</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #fef7fb;
+      background-color: #fdfaff;
       color: #333;
       margin: 0;
       padding: 20px;
     }
 
     h1 {
-      color: #ab7bc0;
       text-align: center;
+      color: #a58bd2;
+      margin-bottom: 30px;
     }
 
-    .chart-container {
-      max-width: 700px;
-      margin: 30px auto;
-      background: #fff0fb;
-      padding: 20px;
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #ffffff;
       border-radius: 12px;
-    }
-
-    .relatorios {
-      max-width: 700px;
-      margin: 20px auto;
-      background: #f0f8ff;
       padding: 20px;
-      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.05);
     }
 
-    .relatorios h2 {
-      color: #6b6bb8;
+    .dia {
+      background-color: #f3efff;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
     }
 
-    .relatorios p {
-      background: #ffffffd8;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      border-left: 4px solid #dabfff;
+    .dia h3 {
+      margin: 0 0 10px;
+      color: #7d5ba6;
     }
 
-    a {
-      display: block;
-      text-align: center;
+    .grafico {
       margin-top: 30px;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    .voltar {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .voltar a {
       text-decoration: none;
-      color: #ab7bc0;
+      color: #a58bd2;
       font-weight: bold;
     }
-
-    a:hover {
-      text-decoration: underline;
-    }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h1>📊 Seu Progresso, Julia!</h1>
+  <h1>✨ Histórico de Estudos ✨</h1>
+  <div class="container" id="historicoContainer">
+    <!-- Dias com relatórios aparecem aqui -->
 
-  <div class="chart-container">
-    <canvas id="pomodorosChart"></canvas>
+    <div class="grafico">
+      <canvas id="graficoDiario"></canvas>
+      <canvas id="graficoSemanal" style="margin-top: 40px;"></canvas>
+    </div>
+
+    <div class="voltar">
+      <a href="index.html">Voltar para o timer</a>
+    </div>
   </div>
 
-  <div class="chart-container">
-    <canvas id="tempoChart"></canvas>
-  </div>
-
-  <div class="relatorios">
-    <h2>📝 Relatórios da Semana:</h2>
-    <div id="relatorioList"></div>
-  </div>
-
-  <a href="index.html">← Voltar para o Timer</a>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    function getUltimosDias(qtd) {
-      const dias = [];
-      const hoje = new Date();
-      for (let i = qtd - 1; i >= 0; i--) {
-        const d = new Date(hoje);
-        d.setDate(d.getDate() - i);
-        dias.push(d.toISOString().slice(0, 10));
-      }
-      return dias;
-    }
+    const dados = JSON.parse(localStorage.getItem("pomodoros") || "{}");
+    const container = document.getElementById("historicoContainer");
 
-    function carregarDados() {
-      const dados = JSON.parse(localStorage.getItem("pomodoros") || "{}");
-      const dias = getUltimosDias(7);
-      const labels = dias.map(d => d.slice(5)); // mostrar só mês/dia
-      const pomodoros = dias.map(d => (dados[d]?.pomodoros || 0));
-      const tempos = dias.map(d => ((dados[d]?.tempo || 0) / 60).toFixed(1));
-      const relatorios = dias.map(d => ({ data: d, texto: dados[d]?.relatorio }));
+    // Mostrar relatórios
+    const datasOrdenadas = Object.keys(dados).sort().reverse();
 
-      return { labels, pomodoros, tempos, relatorios };
-    }
+    datasOrdenadas.forEach(data => {
+      const { pomodoros, tempo, relatorio } = dados[data];
+      const div = document.createElement("div");
+      div.className = "dia";
+      div.innerHTML = `
+        <h3>🗓️ ${data}</h3>
+        <p>🍅 <strong>Pomodoros:</strong> ${pomodoros}</p>
+        <p>⏱️ <strong>Tempo estudado:</strong> ${tempo} min (${(tempo/60).toFixed(1)} h)</p>
+        <p>📒 <strong>Relatório:</strong><br>${relatorio ? relatorio : '<em>(nenhum relatório escrito)</em>'}</p>
+      `;
+      container.insertBefore(div, container.querySelector(".grafico"));
+    });
 
-    function gerarGraficos({ labels, pomodoros, tempos }) {
-      new Chart(document.getElementById('pomodorosChart'), {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Pomodoros por dia',
-            data: pomodoros,
-            backgroundColor: '#dabfff',
-            borderRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            title: {
-              display: true,
-              text: 'Pomodoros nos últimos 7 dias'
-            }
-          }
-        }
-      });
+    // Gerar gráficos
+    const labels = datasOrdenadas.slice().reverse();
+    const tempos = labels.map(d => dados[d].tempo);
 
-      new Chart(document.getElementById('tempoChart'), {
-  type: 'line',
-  data: {
-    labels,
-    datasets: [{
-      label: 'Horas estudadas',
-      data: tempos,
-      fill: true,
-      backgroundColor: '#ffe3e3',
-      borderColor: '#ffa3a3',
-      tension: 0.3
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      title: {
-        display: true,
-        text: 'Tempo de estudo diário (horas)'
+    new Chart(document.getElementById("graficoDiario"), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: "Tempo estudado por dia (min)",
+          data: tempos,
+          backgroundColor: '#ab7bc0'
+        }]
       },
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            return `${context.parsed.y} horas`;
-          }
-        }
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } }
       }
-    },
-    scales: {
-      y: {
-        title: {
-          display: true,
-          text: 'Horas'
-        }
+    });
+
+    const semanal = {};
+    labels.forEach((data, i) => {
+      const semana = data.slice(0, 7); // yyyy-mm
+      semanal[semana] = (semanal[semana] || 0) + dados[data].tempo;
+    });
+
+    new Chart(document.getElementById("graficoSemanal"), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(semanal),
+        datasets: [{
+          label: "Tempo estudado por mês (min)",
+          data: Object.values(semanal),
+          backgroundColor: '#f7c6c7'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } }
       }
-    }
-  }
-});
-
-    <div id="totalHoras" style="text-align:center; margin-top: 20px; font-weight: bold; font-size: 18px; color: #6b6bb8;"></div>
-
-    function mostrarRelatorios(relatorios) {
-      const container = document.getElementById("relatorioList");
-      container.innerHTML = "";
-      relatorios.forEach(r => {
-        if (r.texto?.trim()) {
-          const p = document.createElement("p");
-          p.innerHTML = `<strong>${r.data}:</strong> ${r.texto}`;
-          container.appendChild(p);
-        }
-      });
-    }
-
-    const dados = carregarDados();
-    gerarGraficos(dados);
-    mostrarRelatorios(dados.relatorios);
-    const totalHoras = tempos.reduce((acc, h) => acc + parseFloat(h), 0).toFixed(1);
-document.getElementById('totalHoras').textContent = `📅 Total da semana: ${totalHoras} horas`;
+    });
   </script>
 </body>
 </html>
