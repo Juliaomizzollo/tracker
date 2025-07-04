@@ -16,10 +16,7 @@
       align-items: center;
     }
 
-    h1 {
-      color: #ab7bc0;
-      margin-bottom: 10px;
-    }
+    h1 { color: #ab7bc0; margin-bottom: 10px; }
 
     .modo {
       display: flex;
@@ -57,11 +54,6 @@
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .buttons button:hover {
-      background-color: #ffd6d6;
     }
 
     .info, .relatorio {
@@ -72,10 +64,6 @@
       width: 90%;
       max-width: 500px;
       text-align: center;
-    }
-
-    .info p {
-      margin: 5px 0;
     }
 
     textarea {
@@ -111,7 +99,7 @@
   </style>
 </head>
 <body>
-  <h1>Julia's study time 📚</h1>
+  <h1>Pomodoro da Julia 🌸</h1>
 
   <div class="modo">
     <button onclick="setModo('pomodoro')" id="btnPomodoro">Pomodoro</button>
@@ -119,7 +107,7 @@
     <button onclick="setModo('long')" id="btnLong">Long Break</button>
   </div>
 
-  <div class="timer" id="timer">30:00</div>
+  <div class="timer" id="timer">05:00</div>
 
   <div class="buttons">
     <button onclick="startTimer()">Iniciar</button>
@@ -143,71 +131,88 @@
   </div>
 
   <div class="footer">
-    Feito com 💜 por Julia 
+    Feito com 💜 por Julia e ChatGPT
   </div>
 
   <script>
-    let tempo = 30 * 60; // tempo inicial: 30min
     let timer;
     let rodando = false;
-    let modoAtual = 'pomodoro';
+    let tempoInicial = 5 * 60; // 5 minutos
+    let tempoRestante = tempoInicial;
+    let inicio, modoAtual = 'pomodoro';
 
-    function formatar(segundos) {
-      const m = Math.floor(segundos / 60).toString().padStart(2, '0');
-      const s = (segundos % 60).toString().padStart(2, '0');
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+
+    function formatar(seg) {
+      const m = Math.floor(seg / 60).toString().padStart(2, '0');
+      const s = (seg % 60).toString().padStart(2, '0');
       return `${m}:${s}`;
     }
 
+    function enviarNotificacao(titulo, msg) {
+      if (Notification.permission === "granted") {
+        new Notification(titulo, { body: msg });
+      }
+    }
+
     function setModo(modo) {
-      modoAtual = modo;
       clearInterval(timer);
       rodando = false;
+      modoAtual = modo;
 
-      if (modo === 'pomodoro') tempo = 30 * 60;
-      if (modo === 'short') tempo = 8 * 60;
-      if (modo === 'long') tempo = 20 * 60;
+      if (modo === 'pomodoro') tempoInicial = 5 * 60; // Teste
+      if (modo === 'short') tempoInicial = 8 * 60;
+      if (modo === 'long') tempoInicial = 20 * 60;
 
-      document.getElementById('timer').textContent = formatar(tempo);
+      tempoRestante = tempoInicial;
+      document.getElementById('timer').textContent = formatar(tempoRestante);
 
       document.querySelectorAll('.modo button').forEach(btn => btn.classList.remove('active'));
       document.getElementById(`btn${modo.charAt(0).toUpperCase() + modo.slice(1)}`).classList.add('active');
     }
 
     function startTimer() {
-      if (!rodando) {
-        rodando = true;
-        timer = setInterval(() => {
-          if (tempo > 0) {
-            tempo--;
-            document.getElementById('timer').textContent = formatar(tempo);
+      if (rodando) return;
+      rodando = true;
+      inicio = Date.now();
+
+      timer = setInterval(() => {
+        const agora = Date.now();
+        const segundosPassados = Math.floor((agora - inicio) / 1000);
+        const restante = tempoInicial - segundosPassados;
+
+        if (restante >= 0) {
+          tempoRestante = restante;
+          document.getElementById('timer').textContent = formatar(restante);
+        } else {
+          clearInterval(timer);
+          rodando = false;
+
+          if (modoAtual === 'pomodoro') {
+            salvarPomodoro();
+            enviarNotificacao("Pomodoro finalizado!", "Hora da pausa 😊");
           } else {
-            clearInterval(timer);
-            rodando = false;
-
-            if (modoAtual === 'pomodoro') {
-              salvarPomodoro();
-              alert("Pomodoro finalizado! Hora da pausa 😊");
-              enviarNotificacao("Pomodoro finalizado!");
-            } else {
-              alert("Pausa finalizada! Vamos voltar? 💪");
-              enviarNotificacao("Pausa finalizada!");
-            }
-
-            setModo(modoAtual);
+            enviarNotificacao("Pausa finalizada!", "Vamos voltar? 💪");
           }
-        }, 1000);
-      }
+
+          document.getElementById('timer').textContent = formatar(tempoInicial);
+        }
+      }, 1000);
     }
 
     function pauseTimer() {
       clearInterval(timer);
       rodando = false;
+      tempoInicial = tempoRestante;
     }
 
     function resetTimer() {
       clearInterval(timer);
       rodando = false;
-      setModo(modoAtual);
+      tempoRestante = tempoInicial;
+      document.getElementById('timer').textContent = formatar(tempoRestante);
     }
 
     function salvarPomodoro() {
@@ -217,7 +222,7 @@
         data[hoje] = { pomodoros: 0, tempo: 0, relatorio: "" };
       }
       data[hoje].pomodoros += 1;
-      data[hoje].tempo += 30;
+      data[hoje].tempo += Math.floor(tempoInicial / 60);
       data[hoje].relatorio = document.getElementById('relatorioTexto').value;
       localStorage.setItem("pomodoros", JSON.stringify(data));
       atualizarTela();
@@ -251,15 +256,6 @@
     document.getElementById('relatorioTexto').addEventListener("input", salvarRelatorioTexto);
     setModo('pomodoro');
     atualizarTela();
-    if ('Notification' in window && Notification.permission !== 'granted') {
-  Notification.requestPermission();
-}
-    function enviarNotificacao(titulo, mensagem) {
-  if ('Notification' in window && Notification.permission === 'granted') {
-    new Notification(titulo, { body: mensagem, icon: '📖🧭' });
-  }
-}
-    
   </script>
 </body>
 </html>
