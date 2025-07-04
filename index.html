@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pomodoro da Julia 🍅</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro da Julia</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #fef7fb;
+      background-color: #fdfaff;
       color: #333;
       margin: 0;
       padding: 20px;
@@ -16,7 +16,10 @@
       align-items: center;
     }
 
-    h1 { color: #ab7bc0; margin-bottom: 10px; }
+    h1 {
+      color: #a58bd2;
+      margin-bottom: 10px;
+    }
 
     .modo {
       display: flex;
@@ -25,137 +28,151 @@
     }
 
     .modo button {
-      background-color: #e3dfff;
+      background-color: #f0e6ff;
       border: none;
-      padding: 8px 16px;
-      border-radius: 10px;
-      font-weight: bold;
+      padding: 10px 15px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background-color 0.2s ease;
+      color: #5a3e88;
+      font-weight: bold;
     }
 
     .modo button.active {
-      background-color: #ab7bc0;
+      background-color: #a58bd2;
       color: white;
     }
 
-    .timer {
+    #timer {
       font-size: 64px;
-      margin: 20px;
-      color: #6b6bb8;
+      margin: 20px 0;
     }
 
-    .buttons button {
-      background-color: #ffe3e3;
+    .controles button {
+      background-color: #d0b3f0;
       border: none;
-      color: #333;
       padding: 10px 20px;
-      margin: 5px;
       border-radius: 8px;
-      font-size: 16px;
       cursor: pointer;
-    }
-
-    .info, .relatorio {
-      margin-top: 20px;
-      background: #f0faff;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      text-align: center;
-    }
-
-    textarea {
-      width: 100%;
-      height: 100px;
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      resize: vertical;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    .footer {
-      margin-top: 40px;
-      font-size: 12px;
-      color: #888;
-    }
-
-    .nav {
-      margin-top: 20px;
-    }
-
-    .nav a {
-      text-decoration: none;
-      color: #ab7bc0;
+      margin: 0 5px;
+      color: #fff;
       font-weight: bold;
     }
 
-    .nav a:hover {
-      text-decoration: underline;
+    .info {
+      margin-top: 30px;
+      text-align: center;
+      color: #555;
+    }
+
+    .relatorio {
+      margin-top: 30px;
+      font-style: italic;
+      color: #888;
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .irHistorico {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .irHistorico a {
+      text-decoration: none;
+      color: #a58bd2;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Julia's study time 📚</h1>
+  <h1>Pomodoro da Julia 🍅</h1>
 
   <div class="modo">
-    <button onclick="setModo('pomodoro')" id="btnPomodoro">Pomodoro</button>
-    <button onclick="setModo('short')" id="btnShort">Short Break</button>
-    <button onclick="setModo('long')" id="btnLong">Long Break</button>
+    <button id="btnpomodoro">Pomodoro</button>
+    <button id="btnshort">Short Break</button>
+    <button id="btnlong">Long Break</button>
   </div>
 
-  <div class="timer" id="timer">30:00</div>
+  <div id="timer">30:00</div>
 
-  <div class="buttons">
-    <button onclick="startTimer()">Iniciar</button>
-    <button onclick="pauseTimer()">Pausar</button>
-    <button onclick="resetTimer()">Zerar</button>
+  <div class="controles">
+    <button onclick="iniciarTimer()">Iniciar</button>
+    <button onclick="pausarTimer()">Pausar</button>
+    <button onclick="resetarTimer()">Resetar</button>
   </div>
 
   <div class="info">
-    <p><strong>Pomodoros hoje:</strong> <span id="pomodorosHoje">0</span></p>
-    <p><strong>Tempo estudado:</strong> <span id="tempoHoje">0</span> min (<span id="tempoHojeHoras">0.0</span> h)</p>
+    <p id="contadorPomodoros">Pomodoros hoje: 0</p>
+    <p id="tempoTotal">Tempo total: 0 min (0.0 h)</p>
   </div>
 
-<div class="relatorio">
-  <p style="font-style: italic; color: #888; font-size: 15px;">
+  <div class="relatorio">
     “Sucesso é o acúmulo de pequenos esforços, repetidos dia e noite.”<br>
     — Robert Collier
-  </p>
-</div>
-
-  <div class="nav">
-    <a href="historico.html">📊 Ver histórico e gráficos</a>
   </div>
 
-  <div class="footer">
-    Feito com 💜 por Julia
+  <div class="irHistorico">
+    <a href="historico.html">Ver histórico &rarr;</a>
   </div>
 
   <script>
+    let tempoInicial = 30 * 60;
+    let tempoRestante = tempoInicial;
     let timer;
     let rodando = false;
-    let tempoInicial = 30 * 60; // 30 minutos
-    let tempoRestante = tempoInicial;
-    let inicio, modoAtual = 'pomodoro';
+    let modoAtual = 'pomodoro';
 
-    if ('Notification' in window && Notification.permission !== 'granted') {
-      Notification.requestPermission();
-    }
-
-    function formatar(seg) {
-      const m = Math.floor(seg / 60).toString().padStart(2, '0');
-      const s = (seg % 60).toString().padStart(2, '0');
+    function formatar(segundos) {
+      const m = Math.floor(segundos / 60).toString().padStart(2, '0');
+      const s = (segundos % 60).toString().padStart(2, '0');
       return `${m}:${s}`;
     }
 
-    function enviarNotificacao(titulo, msg) {
-      if (Notification.permission === "granted") {
-        new Notification(titulo, { body: msg });
+    function atualizarTela() {
+      const hoje = new Date().toISOString().slice(0, 10);
+      const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
+      const dia = data[hoje] || { pomodoros: 0, tempo: 0 };
+      document.getElementById("contadorPomodoros").textContent = `Pomodoros hoje: ${dia.pomodoros}`;
+      document.getElementById("tempoTotal").textContent = `Tempo total: ${dia.tempo} min (${(dia.tempo / 60).toFixed(1)} h)`;
+    }
+
+    function salvarPomodoro() {
+      const hoje = new Date().toISOString().slice(0, 10);
+      const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
+      if (!data[hoje]) {
+        data[hoje] = { pomodoros: 0, tempo: 0 };
       }
+      data[hoje].pomodoros += 1;
+      data[hoje].tempo += Math.floor(tempoInicial / 60);
+      localStorage.setItem("pomodoros", JSON.stringify(data));
+      atualizarTela();
+    }
+
+    function iniciarTimer() {
+      if (rodando) return;
+      rodando = true;
+      timer = setInterval(() => {
+        tempoRestante--;
+        document.getElementById("timer").textContent = formatar(tempoRestante);
+        if (tempoRestante <= 0) {
+          clearInterval(timer);
+          rodando = false;
+          if (modoAtual === 'pomodoro') salvarPomodoro();
+          new Notification("⏰ Tempo encerrado!", { body: `O tempo do ${modoAtual} terminou.` });
+        }
+      }, 1000);
+    }
+
+    function pausarTimer() {
+      clearInterval(timer);
+      rodando = false;
+    }
+
+    function resetarTimer() {
+      clearInterval(timer);
+      rodando = false;
+      tempoRestante = tempoInicial;
+      document.getElementById("timer").textContent = formatar(tempoRestante);
     }
 
     function setModo(modo) {
@@ -163,7 +180,7 @@
       rodando = false;
       modoAtual = modo;
 
-      if (modo === 'pomodoro') tempoInicial = 30 * 60; 
+      if (modo === 'pomodoro') tempoInicial = 30 * 60;
       if (modo === 'short') tempoInicial = 8 * 60;
       if (modo === 'long') tempoInicial = 20 * 60;
 
@@ -171,92 +188,19 @@
       document.getElementById('timer').textContent = formatar(tempoRestante);
 
       document.querySelectorAll('.modo button').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(`btn${modo.charAt(0).toUpperCase() + modo.slice(1)}`).classList.add('active');
+      document.getElementById(`btn${modo}`).classList.add('active');
     }
 
-    function startTimer() {
-      if (rodando) return;
-      rodando = true;
-      inicio = Date.now();
+    document.getElementById("btnpomodoro").addEventListener("click", () => setModo("pomodoro"));
+    document.getElementById("btnshort").addEventListener("click", () => setModo("short"));
+    document.getElementById("btnlong").addEventListener("click", () => setModo("long"));
 
-      timer = setInterval(() => {
-        const agora = Date.now();
-        const segundosPassados = Math.floor((agora - inicio) / 1000);
-        const restante = tempoInicial - segundosPassados;
-
-        if (restante >= 0) {
-          tempoRestante = restante;
-          document.getElementById('timer').textContent = formatar(restante);
-        } else {
-          clearInterval(timer);
-          rodando = false;
-
-          if (modoAtual === 'pomodoro') {
-            salvarPomodoro();
-            enviarNotificacao("Pomodoro finalizado!", "Hora da pausa 😊");
-          } else {
-            enviarNotificacao("Pausa finalizada!", "Vamos voltar? 💪");
-          }
-
-          document.getElementById('timer').textContent = formatar(tempoInicial);
-        }
-      }, 1000);
-    }
-
-    function pauseTimer() {
-      clearInterval(timer);
-      rodando = false;
-      tempoInicial = tempoRestante;
-    }
-
-    function resetTimer() {
-      clearInterval(timer);
-      rodando = false;
-      tempoRestante = tempoInicial;
-      document.getElementById('timer').textContent = formatar(tempoRestante);
-    }
-
-    function salvarPomodoro() {
-      const hoje = new Date().toISOString().slice(0, 10);
-      const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
-      if (!data[hoje]) {
-        data[hoje] = { pomodoros: 0, tempo: 0, relatorio: "" };
-      }
-      data[hoje].pomodoros += 1;
-      data[hoje].tempo += Math.floor(tempoInicial / 60);
-      data[hoje].relatorio = document.getElementById('relatorioTexto').value;
-      localStorage.setItem("pomodoros", JSON.stringify(data));
-      atualizarTela();
-    }
-
-    function salvarRelatorioTexto() {
-      const hoje = new Date().toISOString().slice(0, 10);
-      const texto = document.getElementById('relatorioTexto').value;
-      const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
-      if (!data[hoje]) {
-        data[hoje] = { pomodoros: 0, tempo: 0, relatorio: "" };
-      }
-      data[hoje].relatorio = texto;
-      localStorage.setItem("pomodoros", JSON.stringify(data));
-      document.getElementById('statusSalvar').textContent = "Relatório salvo!";
-      setTimeout(() => {
-        document.getElementById('statusSalvar').textContent = "";
-      }, 2000);
-    }
-
-    function atualizarTela() {
-      const hoje = new Date().toISOString().slice(0, 10);
-      const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
-      const hojeData = data[hoje] || { pomodoros: 0, tempo: 0, relatorio: "" };
-      document.getElementById('pomodorosHoje').textContent = hojeData.pomodoros;
-      document.getElementById('tempoHoje').textContent = hojeData.tempo;
-      document.getElementById('tempoHojeHoras').textContent = (hojeData.tempo / 60).toFixed(1);
-      document.getElementById('relatorioTexto').value = hojeData.relatorio || "";
-    }
-
-    document.getElementById('relatorioTexto').addEventListener("input", salvarRelatorioTexto);
-    setModo('pomodoro');
+    setModo("pomodoro");
     atualizarTela();
+
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
   </script>
 </body>
 </html>
