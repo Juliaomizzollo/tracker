@@ -99,7 +99,7 @@
   </style>
 </head>
 <body>
-  <h1>Pomodoro da Julia 🌸</h1>
+  <h1>Julia's study time 📚</h1>
 
   <div class="modo">
     <button onclick="setModo('pomodoro')" id="btnPomodoro">Pomodoro</button>
@@ -107,7 +107,7 @@
     <button onclick="setModo('long')" id="btnLong">Long Break</button>
   </div>
 
-  <div class="timer" id="timer">05:00</div>
+  <div class="timer" id="timer">30:00</div>
 
   <div class="buttons">
     <button onclick="startTimer()">Iniciar</button>
@@ -131,13 +131,13 @@
   </div>
 
   <div class="footer">
-    Feito com 💜 por Julia e ChatGPT
+    Feito com 💜 por Julia
   </div>
 
   <script>
     let timer;
     let rodando = false;
-    let tempoInicial = 5 * 60; // 5 minutos
+    let tempoInicial = 30 * 60; // 30 minutos
     let tempoRestante = tempoInicial;
     let inicio, modoAtual = 'pomodoro';
 
@@ -162,7 +162,7 @@
       rodando = false;
       modoAtual = modo;
 
-      if (modo === 'pomodoro') tempoInicial = 5 * 60; // Teste
+      if (modo === 'pomodoro') tempoInicial = 30 * 60; 
       if (modo === 'short') tempoInicial = 8 * 60;
       if (modo === 'long') tempoInicial = 20 * 60;
 
