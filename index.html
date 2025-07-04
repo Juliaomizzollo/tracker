@@ -116,91 +116,100 @@
   </div>
 
   <script>
-    let tempoInicial = 30 * 60;
-    let tempoRestante = tempoInicial;
-    let timer;
-    let rodando = false;
-    let modoAtual = 'pomodoro';
+  let tempoInicial = 30 * 60;
+  let tempoRestante = tempoInicial;
+  let timer;
+  let rodando = false;
+  let modoAtual = 'pomodoro';
+  let inicioReal;
 
-    function formatar(segundos) {
-      const m = Math.floor(segundos / 60).toString().padStart(2, '0');
-      const s = (segundos % 60).toString().padStart(2, '0');
-      return `${m}:${s}`;
+  function formatar(segundos) {
+    const m = Math.floor(segundos / 60).toString().padStart(2, '0');
+    const s = (segundos % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function atualizarTela() {
+    const hoje = new Date().toISOString().slice(0, 10);
+    const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
+    const dia = data[hoje] || { pomodoros: 0, tempo: 0 };
+    document.getElementById("contadorPomodoros").textContent = `Pomodoros hoje: ${dia.pomodoros}`;
+    document.getElementById("tempoTotal").textContent = `Tempo total: ${dia.tempo} min (${(dia.tempo / 60).toFixed(1)} h)`;
+  }
+
+  function salvarPomodoro() {
+    const hoje = new Date().toISOString().slice(0, 10);
+    const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
+    if (!data[hoje]) {
+      data[hoje] = { pomodoros: 0, tempo: 0 };
     }
-
-    function atualizarTela() {
-      const hoje = new Date().toISOString().slice(0, 10);
-      const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
-      const dia = data[hoje] || { pomodoros: 0, tempo: 0 };
-      document.getElementById("contadorPomodoros").textContent = `Pomodoros hoje: ${dia.pomodoros}`;
-      document.getElementById("tempoTotal").textContent = `Tempo total: ${dia.tempo} min (${(dia.tempo / 60).toFixed(1)} h)`;
-    }
-
-    function salvarPomodoro() {
-      const hoje = new Date().toISOString().slice(0, 10);
-      const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
-      if (!data[hoje]) {
-        data[hoje] = { pomodoros: 0, tempo: 0 };
-      }
-      data[hoje].pomodoros += 1;
-      data[hoje].tempo += Math.floor(tempoInicial / 60);
-      localStorage.setItem("pomodoros", JSON.stringify(data));
-      atualizarTela();
-    }
-
-    function iniciarTimer() {
-      if (rodando) return;
-      rodando = true;
-      timer = setInterval(() => {
-        tempoRestante--;
-        document.getElementById("timer").textContent = formatar(tempoRestante);
-        if (tempoRestante <= 0) {
-          clearInterval(timer);
-          rodando = false;
-          if (modoAtual === 'pomodoro') salvarPomodoro();
-          new Notification("⏰ Tempo encerrado!", { body: `O tempo do ${modoAtual} terminou.` });
-        }
-      }, 1000);
-    }
-
-    function pausarTimer() {
-      clearInterval(timer);
-      rodando = false;
-    }
-
-    function resetarTimer() {
-      clearInterval(timer);
-      rodando = false;
-      tempoRestante = tempoInicial;
-      document.getElementById("timer").textContent = formatar(tempoRestante);
-    }
-
-    function setModo(modo) {
-      clearInterval(timer);
-      rodando = false;
-      modoAtual = modo;
-
-      if (modo === 'pomodoro') tempoInicial = 30 * 60;
-      if (modo === 'short') tempoInicial = 8 * 60;
-      if (modo === 'long') tempoInicial = 20 * 60;
-
-      tempoRestante = tempoInicial;
-      document.getElementById('timer').textContent = formatar(tempoRestante);
-
-      document.querySelectorAll('.modo button').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(`btn${modo}`).classList.add('active');
-    }
-
-    document.getElementById("btnpomodoro").addEventListener("click", () => setModo("pomodoro"));
-    document.getElementById("btnshort").addEventListener("click", () => setModo("short"));
-    document.getElementById("btnlong").addEventListener("click", () => setModo("long"));
-
-    setModo("pomodoro");
+    data[hoje].pomodoros += 1;
+    data[hoje].tempo += Math.floor(tempoInicial / 60);
+    localStorage.setItem("pomodoros", JSON.stringify(data));
     atualizarTela();
+  }
 
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  </script>
+  function iniciarTimer() {
+    if (rodando) return;
+    rodando = true;
+    inicioReal = Date.now();
+
+    timer = setInterval(() => {
+      const agora = Date.now();
+      const decorrido = Math.floor((agora - inicioReal) / 1000);
+      tempoRestante = tempoInicial - decorrido;
+
+      if (tempoRestante <= 0) {
+        clearInterval(timer);
+        rodando = false;
+        document.getElementById("timer").textContent = "00:00";
+        if (modoAtual === 'pomodoro') salvarPomodoro();
+        new Notification("⏰ Tempo encerrado!", { body: `O tempo do ${modoAtual} terminou.` });
+      } else {
+        document.getElementById("timer").textContent = formatar(tempoRestante);
+      }
+    }, 1000);
+  }
+
+  function pausarTimer() {
+    clearInterval(timer);
+    rodando = false;
+    tempoInicial = tempoRestante;
+  }
+
+  function resetarTimer() {
+    clearInterval(timer);
+    rodando = false;
+    tempoRestante = tempoInicial;
+    document.getElementById("timer").textContent = formatar(tempoRestante);
+  }
+
+  function setModo(modo) {
+    clearInterval(timer);
+    rodando = false;
+    modoAtual = modo;
+
+    if (modo === 'pomodoro') tempoInicial = 30 * 60;
+    if (modo === 'short') tempoInicial = 8 * 60;
+    if (modo === 'long') tempoInicial = 20 * 60;
+
+    tempoRestante = tempoInicial;
+    document.getElementById('timer').textContent = formatar(tempoRestante);
+
+    document.querySelectorAll('.modo button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn${modo}`).classList.add('active');
+  }
+
+  document.getElementById("btnpomodoro").addEventListener("click", () => setModo("pomodoro"));
+  document.getElementById("btnshort").addEventListener("click", () => setModo("short"));
+  document.getElementById("btnlong").addEventListener("click", () => setModo("long"));
+
+  setModo("pomodoro");
+  atualizarTela();
+
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+</script>
 </body>
 </html>
