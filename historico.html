@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Histórico e Gráficos 📊</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fef7fb;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #ab7bc0;
+      text-align: center;
+    }
+
+    .chart-container {
+      max-width: 700px;
+      margin: 30px auto;
+      background: #fff0fb;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .relatorios {
+      max-width: 700px;
+      margin: 20px auto;
+      background: #f0f8ff;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .relatorios h2 {
+      color: #6b6bb8;
+    }
+
+    .relatorios p {
+      background: #ffffffd8;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border-left: 4px solid #dabfff;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 30px;
+      text-decoration: none;
+      color: #ab7bc0;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>📊 Seu Progresso, Julia!</h1>
+
+  <div class="chart-container">
+    <canvas id="pomodorosChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <canvas id="tempoChart"></canvas>
+  </div>
+
+  <div class="relatorios">
+    <h2>📝 Relatórios da Semana:</h2>
+    <div id="relatorioList"></div>
+  </div>
+
+  <a href="index.html">← Voltar para o Timer</a>
+
+  <script>
+    function getUltimosDias(qtd) {
+      const dias = [];
+      const hoje = new Date();
+      for (let i = qtd - 1; i >= 0; i--) {
+        const d = new Date(hoje);
+        d.setDate(d.getDate() - i);
+        dias.push(d.toISOString().slice(0, 10));
+      }
+      return dias;
+    }
+
+    function carregarDados() {
+      const dados = JSON.parse(localStorage.getItem("pomodoros") || "{}");
+      const dias = getUltimosDias(7);
+      const labels = dias.map(d => d.slice(5)); // mostrar só mês/dia
+      const pomodoros = dias.map(d => (dados[d]?.pomodoros || 0));
+      const tempos = dias.map(d => (dados[d]?.tempo || 0));
+      const relatorios = dias.map(d => ({ data: d, texto: dados[d]?.relatorio }));
+
+      return { labels, pomodoros, tempos, relatorios };
+    }
+
+    function gerarGraficos({ labels, pomodoros, tempos }) {
+      new Chart(document.getElementById('pomodorosChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Pomodoros por dia',
+            data: pomodoros,
+            backgroundColor: '#dabfff',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: 'Pomodoros nos últimos 7 dias'
+            }
+          }
+        }
+      });
+
+      new Chart(document.getElementById('tempoChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Minutos estudados',
+            data: tempos,
+            fill: true,
+            backgroundColor: '#ffe3e3',
+            borderColor: '#ffa3a3',
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Tempo de estudo diário (minutos)'
+            }
+          }
+        }
+      });
+    }
+
+    function mostrarRelatorios(relatorios) {
+      const container = document.getElementById("relatorioList");
+      container.innerHTML = "";
+      relatorios.forEach(r => {
+        if (r.texto?.trim()) {
+          const p = document.createElement("p");
+          p.innerHTML = `<strong>${r.data}:</strong> ${r.texto}`;
+          container.appendChild(p);
+        }
+      });
+    }
+
+    const dados = carregarDados();
+    gerarGraficos(dados);
+    mostrarRelatorios(dados.relatorios);
+  </script>
+</body>
+</html>
