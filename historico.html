@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calendário de Pomodoros</title>
+  <title>Histórico de Pomodoros</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -72,7 +72,7 @@
   </style>
 </head>
 <body>
-  <h1>Seu Calendário de Pomodoros 🌟</h1>
+  <h1>Histórico mensal 📚</h1>
   <div class="contador" id="contador"></div>
 
   <div id="meses"></div>
@@ -124,9 +124,12 @@
         box.className = "dia";
         box.textContent = d;
 
-        if (pomodoros[dataFormatada]?.pomodoros > 0) {
-          box.classList.add("ativo");
-        }
+       if (pomodoros[dataFormatada]?.pomodoros > 0) {
+  const quantidade = pomodoros[dataFormatada].pomodoros;
+  box.classList.add("ativo");
+  box.title = `Fez ${quantidade} Pomodoro${quantidade > 1 ? 's' : ''}`;
+}
+        
         cal.appendChild(box);
       }
 
