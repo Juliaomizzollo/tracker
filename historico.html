@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Histórico de Estudos — Julia</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendário de Pomodoros</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -15,125 +15,123 @@
 
     h1 {
       text-align: center;
-      color: #a58bd2;
-      margin-bottom: 30px;
+      color: #d4af37;
     }
 
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.05);
-    }
-
-    .dia {
-      background-color: #f3efff;
-      border-radius: 10px;
+    .contador {
+      background-color: #cfe2ff;
+      color: #1d3557;
       padding: 15px;
-      margin-bottom: 15px;
-    }
-
-    .dia h3 {
-      margin: 0 0 10px;
-      color: #7d5ba6;
-    }
-
-    .grafico {
-      margin-top: 30px;
-    }
-
-    canvas {
-      max-width: 100%;
-    }
-
-    .voltar {
-      margin-top: 20px;
+      margin: 20px auto;
       text-align: center;
+      border-radius: 12px;
+      max-width: 400px;
+      font-size: 20px;
+      font-weight: bold;
+      font-family: 'Segoe UI', cursive, sans-serif;
     }
 
-    .voltar a {
-      text-decoration: none;
+    .mes {
+      margin-bottom: 40px;
+    }
+
+    .mes h2 {
+      text-align: center;
       color: #a58bd2;
+    }
+
+    .calendario {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .dia, .cabeca {
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      background-color: #fff9cc;
+      font-size: 14px;
+    }
+
+    .cabeca {
+      background-color: #ffe88b;
+      font-weight: bold;
+    }
+
+    .ativo {
+      background-color: #d7b5f9 !important;
+      color: #fff;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>✨ Histórico de Estudos ✨</h1>
-  <div class="container" id="historicoContainer">
-    <!-- Dias aparecem aqui -->
+  <h1>Seu Calendário de Pomodoros 🌟</h1>
+  <div class="contador" id="contador"></div>
 
-    <div class="grafico">
-      <canvas id="graficoDiario"></canvas>
-      <canvas id="graficoSemanal" style="margin-top: 40px;"></canvas>
-    </div>
+  <div id="meses"></div>
 
-    <div class="voltar">
-      <a href="index.html">Voltar para o timer</a>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const dados = JSON.parse(localStorage.getItem("pomodoros") || "{}");
-    const container = document.getElementById("historicoContainer");
+    // Contador para o vestibular
+    const hoje = new Date();
+    const vestibular = new Date('2025-10-19');
+    const diffTime = vestibular - hoje;
+    const diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    document.getElementById("contador").textContent = `Faltam ${diasRestantes} dias para a sua aprovação!`;
 
-    const datasOrdenadas = Object.keys(dados).sort().reverse();
+    const nomesMeses = ["Julho", "Agosto", "Setembro", "Outubro"];
+    const meses = [6, 7, 8, 9]; // meses JS: 0 = jan
 
-    datasOrdenadas.forEach(data => {
-      const { pomodoros, tempo } = dados[data];
-      const div = document.createElement("div");
-      div.className = "dia";
-      div.innerHTML = `
-        <h3>🗓️ ${data}</h3>
-        <p>🍅 <strong>Pomodoros:</strong> ${pomodoros}</p>
-        <p>⏱️ <strong>Tempo estudado:</strong> ${tempo} min (${(tempo/60).toFixed(1)} h)</p>
-      `;
-      container.insertBefore(div, container.querySelector(".grafico"));
-    });
+    const pomodoros = JSON.parse(localStorage.getItem("pomodoros") || "{}");
 
-    const labels = datasOrdenadas.slice().reverse();
-    const tempos = labels.map(d => dados[d].tempo);
+    const container = document.getElementById("meses");
 
-    new Chart(document.getElementById("graficoDiario"), {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: "Tempo estudado por dia (min)",
-          data: tempos,
-          backgroundColor: '#ab7bc0'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } }
+    for (let i = 0; i < meses.length; i++) {
+      const mes = meses[i];
+      const ano = 2025;
+      const nomeMes = nomesMeses[i];
+      const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+      const primeiroDiaSemana = new Date(ano, mes, 1).getDay();
+
+      const divMes = document.createElement("div");
+      divMes.className = "mes";
+      divMes.innerHTML = `<h2>${nomeMes}</h2><div class="calendario"></div>`;
+      const cal = divMes.querySelector(".calendario");
+
+      const diasSemana = ["D", "S", "T", "Q", "Q", "S", "S"];
+      diasSemana.forEach(dia => {
+        const cab = document.createElement("div");
+        cab.className = "cabeca";
+        cab.textContent = dia;
+        cal.appendChild(cab);
+      });
+
+      for (let i = 0; i < primeiroDiaSemana; i++) {
+        const vazio = document.createElement("div");
+        vazio.className = "dia";
+        cal.appendChild(vazio);
       }
-    });
 
-    const mensal = {};
-    labels.forEach(data => {
-      const mes = data.slice(0, 7); // yyyy-mm
-      mensal[mes] = (mensal[mes] || 0) + dados[data].tempo;
-    });
+      for (let d = 1; d <= diasNoMes; d++) {
+        const dataFormatada = `${ano}-${(mes + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+        const box = document.createElement("div");
+        box.className = "dia";
+        box.textContent = d;
 
-    new Chart(document.getElementById("graficoSemanal"), {
-      type: 'bar',
-      data: {
-        labels: Object.keys(mensal),
-        datasets: [{
-          label: "Tempo estudado por mês (min)",
-          data: Object.values(mensal),
-          backgroundColor: '#f7c6c7'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } }
+        if (pomodoros[dataFormatada]?.pomodoros > 0) {
+          box.classList.add("ativo");
+        }
+        cal.appendChild(box);
       }
-    });
+
+      container.appendChild(divMes);
+    }
   </script>
 </body>
 </html>
