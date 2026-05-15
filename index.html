@@ -1,215 +1,68 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pomodoro da Julia</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #fdfaff;
-      color: #333;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+  <title>Pomodoro Vintage</title>
 
-    h1 {
-      color: #a58bd2;
-      margin-bottom: 10px;
-    }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    .modo {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
 
-    .modo button {
-      background-color: #f0e6ff;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      color: #5a3e88;
-      font-weight: bold;
-    }
-
-    .modo button.active {
-      background-color: #a58bd2;
-      color: white;
-    }
-
-    #timer {
-      font-size: 64px;
-      margin: 20px 0;
-    }
-
-    .controles button {
-      background-color: #d0b3f0;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 0 5px;
-      color: #fff;
-      font-weight: bold;
-    }
-
-    .info {
-      margin-top: 30px;
-      text-align: center;
-      color: #555;
-    }
-
-    .relatorio {
-      margin-top: 30px;
-      font-style: italic;
-      color: #888;
-      text-align: center;
-      max-width: 400px;
-    }
-
-    .irHistorico {
-      margin-top: 20px;
-      text-align: center;
-    }
-
-    .irHistorico a {
-      text-decoration: none;
-      color: #a58bd2;
-      font-weight: bold;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Julia's study time 📚</h1>
 
-  <div class="modo">
-    <button id="btnpomodoro">Pomodoro</button>
-    <button id="btnshort">Short Break</button>
-    <button id="btnlong">Long Break</button>
-  </div>
+  <div class="overlay"></div>
 
-  <div id="timer">30:00</div>
+  <main class="container">
 
-  <div class="controles">
-    <button onclick="iniciarTimer()">Iniciar</button>
-    <button onclick="pausarTimer()">Pausar</button>
-    <button onclick="resetarTimer()">Resetar</button>
-  </div>
+    <div class="top-area">
+      <h1>POMODORO</h1>
+      <p class="mode" id="modeText">FOCO</p>
+    </div>
 
-  <div class="info">
-    <p id="contadorPomodoros">Pomodoros hoje: 0</p>
-    <p id="tempoTotal">Tempo total: 0 min (0.0 h)</p>
-  </div>
+    <div class="timer" id="timer">25:00</div>
 
-  <div class="relatorio">
-    “Sucesso é o acúmulo de pequenos esforços, repetidos dia e noite.”<br>
-    — Robert Collier
-  </div>
+    <div class="hourglass-wrapper">
 
-  <div class="irHistorico">
-    <a href="historico.html">Ver histórico &rarr;</a>
-  </div>
+      <div class="hourglass">
 
-  <script>
-  let tempoInicial = 30 * 60;
-  let tempoRestante = tempoInicial;
-  let timer;
-  let rodando = false;
-  let modoAtual = 'pomodoro';
-  let inicioReal;
+        <div class="glass top-glass">
+          <div class="sand-top" id="sandTop"></div>
+        </div>
 
-  function formatar(segundos) {
-    const m = Math.floor(segundos / 60).toString().padStart(2, '0');
-    const s = (segundos % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  }
+        <div class="sand-stream" id="sandStream"></div>
 
-  function atualizarTela() {
-    const hoje = new Date().toISOString().slice(0, 10);
-    const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
-    const dia = data[hoje] || { pomodoros: 0, tempo: 0 };
-    document.getElementById("contadorPomodoros").textContent = `Pomodoros hoje: ${dia.pomodoros}`;
-    document.getElementById("tempoTotal").textContent = `Tempo total: ${dia.tempo} min (${(dia.tempo / 60).toFixed(1)} h)`;
-  }
+        <div class="glass bottom-glass">
+          <div class="sand-bottom" id="sandBottom"></div>
+        </div>
 
-  function salvarPomodoro() {
-    const hoje = new Date().toISOString().slice(0, 10);
-    const data = JSON.parse(localStorage.getItem("pomodoros") || "{}");
-    if (!data[hoje]) {
-      data[hoje] = { pomodoros: 0, tempo: 0 };
-    }
-    data[hoje].pomodoros += 1;
-    data[hoje].tempo += Math.floor(tempoInicial / 60);
-    localStorage.setItem("pomodoros", JSON.stringify(data));
-    atualizarTela();
-  }
+      </div>
 
-  function iniciarTimer() {
-    if (rodando) return;
-    rodando = true;
-    inicioReal = Date.now();
+    </div>
 
-    timer = setInterval(() => {
-      const agora = Date.now();
-      const decorrido = Math.floor((agora - inicioReal) / 1000);
-      tempoRestante = tempoInicial - decorrido;
+    <div class="buttons">
+      <button id="startBtn">Iniciar</button>
+      <button id="pauseBtn">Pausar</button>
+      <button id="resetBtn">Resetar</button>
+    </div>
 
-      if (tempoRestante <= 0) {
-        clearInterval(timer);
-        rodando = false;
-        document.getElementById("timer").textContent = "00:00";
-        if (modoAtual === 'pomodoro') salvarPomodoro();
-        new Notification("⏰ Tempo encerrado!", { body: `O tempo do ${modoAtual} terminou.` });
-      } else {
-        document.getElementById("timer").textContent = formatar(tempoRestante);
-      }
-    }, 1000);
-  }
+    <div class="stats">
+      <div class="card">
+        <h3>Ciclos completos</h3>
+        <p id="cycles">0</p>
+      </div>
 
-  function pausarTimer() {
-    clearInterval(timer);
-    rodando = false;
-    tempoInicial = tempoRestante;
-  }
+      <div class="card">
+        <h3>Status</h3>
+        <p id="status">Mantenha o foco.</p>
+      </div>
+    </div>
 
-  function resetarTimer() {
-    clearInterval(timer);
-    rodando = false;
-    tempoRestante = tempoInicial;
-    document.getElementById("timer").textContent = formatar(tempoRestante);
-  }
+  </main>
 
-  function setModo(modo) {
-    clearInterval(timer);
-    rodando = false;
-    modoAtual = modo;
-
-    if (modo === 'pomodoro') tempoInicial = 30 * 60;
-    if (modo === 'short') tempoInicial = 8 * 60;
-    if (modo === 'long') tempoInicial = 20 * 60;
-
-    tempoRestante = tempoInicial;
-    document.getElementById('timer').textContent = formatar(tempoRestante);
-
-    document.querySelectorAll('.modo button').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn${modo}`).classList.add('active');
-  }
-
-  document.getElementById("btnpomodoro").addEventListener("click", () => setModo("pomodoro"));
-  document.getElementById("btnshort").addEventListener("click", () => setModo("short"));
-  document.getElementById("btnlong").addEventListener("click", () => setModo("long"));
-
-  setModo("pomodoro");
-  atualizarTela();
-
-  if (Notification.permission !== "granted") {
-    Notification.requestPermission();
-  }
-</script>
+  <script src="script.js"></script>
 </body>
 </html>
