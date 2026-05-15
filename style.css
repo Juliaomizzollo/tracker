@@ -1,0 +1,61 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, rgba(120, 72, 19, 0.15), transparent 30%),
+    linear-gradient(135deg, #0b0907, #1a120d, #080605);
+
+  color: #f2dec2;
+
+  font-family: 'Cormorant Garamond', serif;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(circle at center, transparent, rgba(0,0,0,0.7));
+
+  pointer-events: none;
+}
+
+.container {
+  width: 100%;
+  max-width: 1100px;
+
+  padding: 40px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 24px;
+
+  position: relative;
+  z-index: 2;
+}
+
+.top-area {
+  text-align: center;
+}
+
+h1 {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 8px;
+  font-size: 2rem;
+  color: #d9b98d;
+}
+}
