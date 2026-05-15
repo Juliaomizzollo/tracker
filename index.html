@@ -547,6 +547,26 @@ function resetTimer(){
     updateDisplay()
 }
 
+const today = new Date().toLocaleDateString()
+
+const savedDate = localStorage.getItem('pomodoro-date')
+const savedCycles = localStorage.getItem('pomodoro-cycles')
+
+if(savedDate === today){
+
+    cycles = Number(savedCycles || 0)
+
+}else{
+
+    cycles = 0
+
+    localStorage.setItem('pomodoro-date', today)
+}
+
+cyclesEl.innerText = cycles
+localStorage.setItem('pomodoro-cycles', cycles)
+localStorage.setItem('pomodoro-date', today)
+
 updateDisplay()
 
 </script>
