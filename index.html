@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <title>Pomodoro Vintage</title>
-
+    
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -277,6 +277,22 @@ button:hover{
     0 0 25px rgba(255,196,120,0.15);
 }
 
+<div class="modes">
+
+    <button class="mode-btn active" onclick="setMode('focus')">
+        FOCO
+    </button>
+
+    <button class="mode-btn" onclick="setMode('short')">
+        DESCANSO CURTO
+    </button>
+
+    <button class="mode-btn" onclick="setMode('long')">
+        DESCANSO LONGO
+    </button>
+
+</div>
+
 /* CARDS */
 
 .info{
@@ -357,7 +373,21 @@ button:hover{
 
     <h1 class="title">POMODORO</h1>
 
-    <div class="mode" id="mode">FOCO</div>
+    <div class="modes">
+
+    <button class="mode-btn active" onclick="setMode('focus')">
+        FOCO
+    </button>
+
+    <button class="mode-btn" onclick="setMode('short')">
+        DESCANSO CURTO
+    </button>
+
+    <button class="mode-btn" onclick="setMode('long')">
+        DESCANSO LONGO
+    </button>
+
+</div>
 
     <div class="timer" id="timer">25:00</div>
 
@@ -435,9 +465,10 @@ let isFocus = true
 let cycles = 0
 
 let interval = null
-
+    
+const modeButtons =
+document.querySelectorAll('.mode-btn')
 const timer = document.getElementById('timer')
-const mode = document.getElementById('mode')
 const cyclesEl = document.getElementById('cycles')
 const statusEl = document.getElementById('status')
 
@@ -461,35 +492,53 @@ function updateDisplay(){
     `${(1 - progress) * 100}%`
 }
 
-function switchMode(){
+function setMode(modeType){
 
-    if(isFocus){
+    clearInterval(interval)
 
-        cycles++
+    isRunning = false
 
-        cyclesEl.innerText = cycles
+    modeButtons.forEach(btn=>{
+        btn.classList.remove('active')
+    })
 
-        isFocus = false
+    if(modeType === 'focus'){
 
-        time = breakTime
-        totalTime = breakTime
+        time = 25 * 60
+        totalTime = time
 
-        mode.innerText = 'DESCANSO'
-
-        statusEl.innerText =
-        'Respire um pouco ☕'
-
-    }else{
-
-        isFocus = true
-
-        time = focusTime
-        totalTime = focusTime
-
-        mode.innerText = 'FOCO'
+        document
+        .querySelectorAll('.mode-btn')[0]
+        .classList.add('active')
 
         statusEl.innerText =
-        'Hora de estudar ✨'
+        'Hora de mergulhar nos estudos ✨'
+    }
+
+    if(modeType === 'short'){
+
+        time = 5 * 60
+        totalTime = time
+
+        document
+        .querySelectorAll('.mode-btn')[1]
+        .classList.add('active')
+
+        statusEl.innerText =
+        'Pausa curta ☕'
+    }
+
+    if(modeType === 'long'){
+
+        time = 20 * 60
+        totalTime = time
+
+        document
+        .querySelectorAll('.mode-btn')[2]
+        .classList.add('active')
+
+        statusEl.innerText =
+        'Descanso longo 🌙'
     }
 
     updateDisplay()
@@ -566,6 +615,7 @@ if(savedDate === today){
 cyclesEl.innerText = cycles
 localStorage.setItem('pomodoro-cycles', cycles)
 localStorage.setItem('pomodoro-date', today)
+
 
 updateDisplay()
 
